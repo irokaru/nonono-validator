@@ -50,6 +50,7 @@ class Validator {
       object   : (val, limit, lt=true) => Validator.maxObjectLength(val, limit, lt),
     };
 
+    this._defineStaticValues('types',       types);
     this._defineStaticValues('patterns',    patterns);
     this._defineStaticValues('validateMin', validateMin);
     this._defineStaticValues('validateMax', validateMax);
