@@ -4,5 +4,11 @@
   "description": "validator",
   "main": "Validator.js",
   "author": "irokaru <karuta@nononotyaya.net>",
-  "license": "MIT"
+  "scripts": {
+    "test": "./node_modules/jest/bin/jest.js --config=jest.config.js --coverage"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^26.5.2"
+  }
 }
