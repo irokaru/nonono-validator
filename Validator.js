@@ -5,19 +5,54 @@ class Validator {
     this._rules = {};
 
     const types = {
+      number   : (val) => Validator.isNumber(val),
+      int      : (val) => Validator.isInteger(val),
+      integer  : (val) => Validator.isInteger(val),
+      string   : (val) => Validator.isString(val),
+      numstring: (val) => Validator.isNumberOnString(val),
+      intstring: (val) => Validator.isIntegerOnString(val),
+      bool     : (val) => Validator.isBoolean(val),
+      boolean  : (val) => Validator.isBoolean(val),
+      array    : (val) => Validator.isArray(val),
+      object   : (val) => Validator.isObject(val),
+      callback : (callbacked, args) => Validator.callback(callbacked, args),
     };
 
     const patterns = {
-
+      japanese: (val) => Validator.isJapanese(val),
+      email   : (val) => Validator.isEmail(val),
+      url     : (val) => Validator.isUrl(val),
     };
 
     const validateMin = {
-
+      number   : (val, limit, gt=true) => Validator.minNumber(val, limit, gt),
+      int      : (val, limit, gt=true) => Validator.minNumber(val, limit, gt),
+      integer  : (val, limit, gt=true) => Validator.minNumber(val, limit, gt),
+      string   : (val, limit, gt=true) => Validator.minLength(val, limit, gt),
+      numstring: (val, limit, gt=true) => Validator.minLength(val, limit, gt),
+      intstring: (val, limit, gt=true) => Validator.minLength(val, limit, gt),
+      bool     : (val, limit, gt=true) => false,
+      boolean  : (val, limit, gt=true) => false,
+      array    : (val, limit, gt=true) => Validator.minArrayLength(val, limit, gt),
+      object   : (val, limit, gt=true) => Validator.minObjectLength(val, limit, gt),
     };
 
     const validateMax = {
-
+      number   : (val, limit, lt=true) => Validator.maxNumber(val, limit, lt),
+      int      : (val, limit, lt=true) => Validator.maxNumber(val, limit, lt),
+      integer  : (val, limit, lt=true) => Validator.maxNumber(val, limit, lt),
+      string   : (val, limit, lt=true) => Validator.maxLength(val, limit, lt),
+      numstring: (val, limit, lt=true) => Validator.maxLength(val, limit, lt),
+      intstring: (val, limit, lt=true) => Validator.maxLength(val, limit, lt),
+      bool     : (val, limit, lt=true) => false,
+      boolean  : (val, limit, lt=true) => false,
+      array    : (val, limit, lt=true) => Validator.maxArrayLength(val, limit, lt),
+      object   : (val, limit, lt=true) => Validator.maxObjectLength(val, limit, lt),
     };
+
+    this._defineStaticValues('patterns',    patterns);
+    this._defineStaticValues('validateMin', validateMin);
+    this._defineStaticValues('validateMax', validateMax);
   }
 
   // -------------------------------------------------------
@@ -29,6 +64,20 @@ class Validator {
    * @returns {Validator}
    */
   rules(data, rules) {
+    if (!Validator.isObject(data) || !Validator.isObject(rules)) {
+      throw Error('args are not object');
+    }
+
+    if (!Validator.minObjectLength(rules, 1)) {
+      throw Error('rules length is 1 or more');
+    }
+
+    for (const value of Object.values(rules)) {
+      if (!Validator.inArray(value.type, Object.keys(this.$.validateType))) {
+        throw Error(`not found type: ${value.type}`);
+      }
+    }
+
     this._data  = data;
     this._rules = rules;
 
@@ -37,7 +86,7 @@ class Validator {
 
   // -------------------------------------------------------
 
-    /**
+  /**
    * 数字かどうかを判定する
    * @param {unknown} val
    * @returns {boolean}
@@ -437,7 +486,7 @@ class Validator {
       return err;
     }
 
-    const callbackErrors = this.$._validateType[type](func, [value, name||key]);
+    const callbackErrors = this.$.validateType[type](func, [value, name||key]);
 
     if (!Validator.isArray(callbackErrors)) {
       err = Validator._setError(err, key, 'function return type is not array');
@@ -501,16 +550,17 @@ class Validator {
 
   /**
    * define static values in class
+   * @param {string} key
    * @param {object} values
    * @returns {void}
    */
-  _defineStaticValues(values) {
-    for (const [key, value] of Object.entries(values)) {
-      Object.defineProperties(this, {
-        [key]: {
+  _defineStaticValues(key, values) {
+    for (const [k, v] of Object.entries(values)) {
+      Object.defineProperties(this.$[key], {
+        [k]: {
           configurable: true,
           writable    : false,
-          value       : value,
+          value       : v,
         }
       });
     }
