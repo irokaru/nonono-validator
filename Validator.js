@@ -1,4 +1,4 @@
-class Validator {
+export default class Validator {
   constructor() {
     this.$      = {};
     this._data  = {};
@@ -50,9 +50,10 @@ class Validator {
       object   : (val, limit, lt=true) => Validator.maxObjectLength(val, limit, lt),
     };
 
-    this._defineStaticValues('patterns',    patterns);
-    this._defineStaticValues('validateMin', validateMin);
-    this._defineStaticValues('validateMax', validateMax);
+    this._defineStaticProperties('types',       types);
+    this._defineStaticProperties('patterns',    patterns);
+    this._defineStaticProperties('validateMin', validateMin);
+    this._defineStaticProperties('validateMax', validateMax);
   }
 
   // -------------------------------------------------------
@@ -73,7 +74,7 @@ class Validator {
     }
 
     for (const value of Object.values(rules)) {
-      if (!Validator.inArray(value.type, Object.keys(this.$.validateType))) {
+      if (!Validator.inArray(value.type, Object.keys(this.$.types))) {
         throw Error(`not found type: ${value.type}`);
       }
     }
@@ -486,7 +487,7 @@ class Validator {
       return err;
     }
 
-    const callbackErrors = this.$.validateType[type](func, [value, name||key]);
+    const callbackErrors = this.$.types[type](func, [value, name||key]);
 
     if (!Validator.isArray(callbackErrors)) {
       err = Validator._setError(err, key, 'function return type is not array');
@@ -551,19 +552,18 @@ class Validator {
   /**
    * define static values in class
    * @param {string} key
-   * @param {object} values
+   * @param {object} value
    * @returns {void}
    */
-  _defineStaticValues(key, values) {
-    for (const [k, v] of Object.entries(values)) {
-      Object.defineProperties(this.$[key], {
-        [k]: {
-          configurable: true,
-          writable    : false,
-          value       : v,
-        }
-      });
-    }
+  _defineStaticProperties(key, value) {
+    Object.defineProperties(this.$, {
+      [key]: {
+        configurable: false,
+        writable    : false,
+        value       : value,
+      }
+    });
+
   }
 
   // -------------------------------------------------------
