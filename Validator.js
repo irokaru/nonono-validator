@@ -1,4 +1,6 @@
-class Validator {
+'use strict';
+
+export default class Validator {
   constructor() {
     this.$      = {};
     this._data  = {};
