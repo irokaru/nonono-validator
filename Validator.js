@@ -85,6 +85,75 @@ export default class Validator {
     return this;
   }
 
+  /**
+   * バリデーションの結果を返す(正しいデータであればtrueが返る)
+   * @returns {boolean}
+   */
+  exec() {
+    return Object.entries(this.errors()).length ? false : true;
+  }
+
+  /**
+   * バリデーションのエラーを返す
+   * @param {object} err
+   * @returns {object}
+   */
+  errors(err = {}) {
+    for (let [key, rule] of Object.entries(this._rules)) {
+      const name  = rule.name || '';
+      const type  = rule.type;
+      const value = this._data[key];
+
+      err = Validator._resetErrorAsKey(err, key);
+
+      // skip for not exist nullable value
+      if (!Validator.hasKeyInObject(this._data, key)) {
+        if (!Validator._checkNullable(rule)) {
+          const msg = name ? `${name}がありません` : `${key}がありません`;
+          err = Validator._setError(err, key, msg);
+        }
+        continue;
+      }
+
+      // check type
+      if (type !== 'callback' && !this.$.types[type](value)) {
+        const msg = name ? `${name}の型が不正です` : `${key}の型が不正です`;
+        err = Validator._setError(err, key, msg);
+        continue;
+      }
+
+      // callback validate
+      if (type === 'callback') {
+        err = this._callbackExec(rule, key, value, err);
+        continue;
+      }
+
+      // check min
+      if (Validator.hasKeyInObject(rule, 'min')) {
+        if (!this.$.validateMin[type](value, rule.min)) {
+          err = Validator._setError(err, key, Validator._getMinErrorMsg(value, rule.min, name||key));
+        }
+      }
+
+      // check max
+      if (Validator.hasKeyInObject(rule, 'max')) {
+        if (!this.$.validateMax[type](value, rule.max)) {
+          err = Validator._setError(err, key, Validator._getMaxErrorMsg(value, rule.max, name||key));
+        }
+      }
+
+      // check string pattern
+      if (Validator.hasKeyInObject(rule, 'pattern') && type === 'string') {
+        if (!this.$.patterns[rule.pattern](value)) {
+          const msg = `正しい形式で入力してください`;
+          err = Validator._setError(err, key, msg);
+        }
+      }
+    }
+
+    return err;
+  }
+
   // -------------------------------------------------------
 
   /**

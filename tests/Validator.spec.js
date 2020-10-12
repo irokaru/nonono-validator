@@ -1167,7 +1167,7 @@ describe('integration', () => {
       [false, {str: ['正しい形式で入力してください']}, {str: 'hoge'},                  {str: {type: 'string', pattern: 'email'}}],
       [false, {str: ['正しい形式で入力してください']}, {str: 'hoge'},                  {str: {type: 'string', pattern: 'url'}}],
       [true,  {},                                      {str: 'あああ'},                {str: {type: 'string', min: 2, max: 5, pattern: 'japanese'}}],
-      [true,  {},                                      {str: 'nononotyaya@gmail.com'}, {str: {type: 'string', min: 10, max: 20, pattern: 'email'}}],
+      [true,  {},                                      {str: 'nononotyaya@gmail.com'}, {str: {type: 'string', min: 10, max: 30, pattern: 'email'}}],
       [true,  {},                                      {str: 'https://wodifes.net'},   {str: {type: 'string', min: 10, max: 20, pattern: 'url'}}],
 
       [true,  {},                                            {arg: '11.000'}, {arg: {type: 'numstring', min: 5, max: 10}}],
