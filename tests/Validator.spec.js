@@ -7,6 +7,66 @@ import Validator from '../Validator';
 
 // -------------------------------------------------------
 
+describe('rules', () => {
+  test('[OK] is match setting rules', () => {
+    const rules = {
+      test: {
+        name: 'test value',
+        type: 'string',
+      },
+      hoge: {
+        name: 'test test test',
+        type: 'int',
+      },
+    };
+
+    const v = (new Validator()).rules({}, rules);
+    expect(rules).toEqual(v._rules);
+  });
+
+  test('[NG] throw Error when rules is not object', () => {
+    const suites = TestTools.arrayMerge([
+      TestParams.INT, TestParams.INT_COMMA, TestParams.FLOAT,
+      TestParams.STRING_INT, TestParams.STRING_INT_COMMA, TestParams.STRING_FLOAT, TestParams.STRING_WORD,
+      TestParams.ARRAY, TestParams.ARRAY_EMPTY,
+      TestParams.BOOLEAN, TestParams.NULL,
+    ]);
+
+    for (const suite of suites) {
+      expect(() => {
+        (new Validator()).rules({}, suite)
+      }).toThrow('args are not object');
+    }
+  });
+
+  test('[NG] throw error when rules length 0', () => {
+    const suites = TestTools.arrayMerge([
+      TestParams.OBJECT_EMPTY,
+    ]);
+
+    for (const suite of suites) {
+      expect(() => {
+        (new Validator()).rules({}, suite)
+      }).toThrow('rules length is 1 or more');
+    }
+  });
+
+  test('[NG] thrwo error then type not match', () => {
+    const suites = [
+      'hoge',
+      'not match',
+      'boo',
+      'integ',
+    ];
+
+    for (const suite of suites) {
+      expect(() => {
+        (new Validator()).rules({}, {keyname: {type: suite}})
+      }).toThrow(`not found type: ${suite}`);
+    }
+  });
+});
+
 describe('validate number and integer', () => {
   test('[OK] is number test', () => {
     const suitesTrue = TestTools.insertExpectInPatterns(true, TestTools.arrayMerge([
