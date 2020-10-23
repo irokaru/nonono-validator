@@ -1,5 +1,3 @@
-'use strict';
-
 export default class Validator {
   constructor() {
     this.$      = {};
@@ -52,10 +50,10 @@ export default class Validator {
       object   : (val, limit, lt=true) => Validator.maxObjectLength(val, limit, lt),
     };
 
-    this._defineStaticValues('types',       types);
-    this._defineStaticValues('patterns',    patterns);
-    this._defineStaticValues('validateMin', validateMin);
-    this._defineStaticValues('validateMax', validateMax);
+    this._defineStaticProperties('types',       types);
+    this._defineStaticProperties('patterns',    patterns);
+    this._defineStaticProperties('validateMin', validateMin);
+    this._defineStaticProperties('validateMax', validateMax);
   }
 
   // -------------------------------------------------------
@@ -76,7 +74,7 @@ export default class Validator {
     }
 
     for (const value of Object.values(rules)) {
-      if (!Validator.inArray(value.type, Object.keys(this.$.validateType))) {
+      if (!Validator.inArray(value.type, Object.keys(this.$.types))) {
         throw Error(`not found type: ${value.type}`);
       }
     }
@@ -85,6 +83,75 @@ export default class Validator {
     this._rules = rules;
 
     return this;
+  }
+
+  /**
+   * バリデーションの結果を返す(正しいデータであればtrueが返る)
+   * @returns {boolean}
+   */
+  exec() {
+    return Object.entries(this.errors()).length ? false : true;
+  }
+
+  /**
+   * バリデーションのエラーを返す
+   * @param {object} err
+   * @returns {object}
+   */
+  errors(err = {}) {
+    for (let [key, rule] of Object.entries(this._rules)) {
+      const name  = rule.name || '';
+      const type  = rule.type;
+      const value = this._data[key];
+
+      err = Validator._resetErrorAsKey(err, key);
+
+      // skip for not exist nullable value
+      if (!Validator.hasKeyInObject(this._data, key)) {
+        if (!Validator._checkNullable(rule)) {
+          const msg = name ? `${name}がありません` : `${key}がありません`;
+          err = Validator._setError(err, key, msg);
+        }
+        continue;
+      }
+
+      // check type
+      if (type !== 'callback' && !this.$.types[type](value)) {
+        const msg = name ? `${name}の型が不正です` : `${key}の型が不正です`;
+        err = Validator._setError(err, key, msg);
+        continue;
+      }
+
+      // callback validate
+      if (type === 'callback') {
+        err = this._callbackExec(rule, key, value, err);
+        continue;
+      }
+
+      // check min
+      if (Validator.hasKeyInObject(rule, 'min')) {
+        if (!this.$.validateMin[type](value, rule.min)) {
+          err = Validator._setError(err, key, Validator._getMinErrorMsg(value, rule.min, name||key));
+        }
+      }
+
+      // check max
+      if (Validator.hasKeyInObject(rule, 'max')) {
+        if (!this.$.validateMax[type](value, rule.max)) {
+          err = Validator._setError(err, key, Validator._getMaxErrorMsg(value, rule.max, name||key));
+        }
+      }
+
+      // check string pattern
+      if (Validator.hasKeyInObject(rule, 'pattern') && type === 'string') {
+        if (!this.$.patterns[rule.pattern](value)) {
+          const msg = `正しい形式で入力してください`;
+          err = Validator._setError(err, key, msg);
+        }
+      }
+    }
+
+    return err;
   }
 
   // -------------------------------------------------------
@@ -489,7 +556,7 @@ export default class Validator {
       return err;
     }
 
-    const callbackErrors = this.$.validateType[type](func, [value, name||key]);
+    const callbackErrors = this.$.types[type](func, [value, name||key]);
 
     if (!Validator.isArray(callbackErrors)) {
       err = Validator._setError(err, key, 'function return type is not array');
@@ -554,19 +621,18 @@ export default class Validator {
   /**
    * define static values in class
    * @param {string} key
-   * @param {object} values
+   * @param {object} value
    * @returns {void}
    */
-  _defineStaticValues(key, values) {
-    for (const [k, v] of Object.entries(values)) {
-      Object.defineProperties(this.$[key], {
-        [k]: {
-          configurable: true,
-          writable    : false,
-          value       : v,
-        }
-      });
-    }
+  _defineStaticProperties(key, value) {
+    Object.defineProperties(this.$, {
+      [key]: {
+        configurable: false,
+        writable    : false,
+        value       : value,
+      }
+    });
+
   }
 
   // -------------------------------------------------------

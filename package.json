@@ -4,5 +4,13 @@
   "description": "validator",
   "main": "Validator.js",
   "author": "irokaru <karuta@nononotyaya.net>",
-  "license": "MIT"
+  "scripts": {
+    "test": "./node_modules/jest/bin/jest.js --config=jest.config.js --coverage"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "babel-jest": "^26.5.2",
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "jest": "^26.5.2"
+  }
 }
