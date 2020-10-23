@@ -2,7 +2,8 @@
   "name": "nonono-validator",
   "version": "1.0.0",
   "description": "validator",
-  "main": "Validator.js",
+  "module": "Validator.js",
+  "private": true,
   "author": "irokaru <karuta@nononotyaya.net>",
   "scripts": {
     "test": "./node_modules/jest/bin/jest.js --config=jest.config.js --coverage"
