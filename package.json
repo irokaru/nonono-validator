@@ -2,7 +2,7 @@
   "name": "nonono-validator",
   "version": "1.0.0",
   "description": "validator",
-  "module": "Validator.js",
+  "main": "Validator.js",
   "private": true,
   "author": "irokaru <karuta@nononotyaya.net>",
   "scripts": {
