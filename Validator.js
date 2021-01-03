@@ -435,7 +435,7 @@ export default class Validator {
     return obj.hasOwnProperty(key);
   }
 
-    /**
+  /**
    * オブジェクトの要素数が指定値以上か(超過か)どうかを判定する
    * @param {object} val
    * @param {number} limit
